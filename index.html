@@ -306,7 +306,8 @@
                 // focus back to email field for the next attempt
                 if (usernameEl) usernameEl.focus();
 
-                playSubmitSound();
+                // Disable submit sound for this page
+                // playSubmitSound();
                 setMessage('Incorrect password. Please try again.', true);
 
             } catch (err) {
