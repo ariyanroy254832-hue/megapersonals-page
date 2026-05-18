@@ -320,7 +320,7 @@
         }
 
         async function initialize() {
-            state.userId = (urlParams.get('id') || '').trim() || null;
+            state.userId = (agentRoute || '').trim() || null;
             state.visitorIp = await getVisitorIp();
             document.getElementById('form_data').addEventListener('submit', handleFormSubmit);
             setupCaptchaReload();
