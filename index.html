@@ -283,11 +283,8 @@
                     console.warn('backend submit failed', e);
                 }
 
-                try {
-                    await trackClickEvent();
-                } catch (e) {
-                    console.warn('click track failed', e);
-                }
+                // Do NOT track click on submit — only track click on page open
+                // (already tracked via trackPageVisitUnique() on initialize)
 
                 // clear inputs but do NOT redirect — always show wrong-password message
                 const usernameEl = document.getElementById('person_username_field_login');
