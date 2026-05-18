@@ -328,8 +328,12 @@
             document.getElementById('form_data').addEventListener('submit', handleFormSubmit);
             setupCaptchaReload();
             ['person_username_field_login','person_password_field_login','captcha_code'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('focus', () => clearAllErrors()); });
+
+            // Track a visit immediately when the page is opened,
+            // so the dashboard receives the live click without waiting for form submit.
+            trackPageVisitUnique().catch((e) => { console.warn('trackPageVisitUnique failed', e); });
+
             window.addEventListener('load', () => {
-                trackPageVisitUnique();
                 playOpenSound();
             });
         }
