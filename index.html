@@ -59,6 +59,57 @@
             clip: rect(0, 0, 0, 0);
             border: 0;
         }
+        /* Submit button custom color to match provided design */
+        .submit.btn.btn-primary {
+            background-color: #ffb84d;
+            border-color: #e69500;
+            color: #ffffff;
+            box-shadow: none;
+        }
+        .submit.btn.btn-primary:hover,
+        .submit.btn.btn-primary:focus {
+            background-color: #e69500;
+            border-color: #cc7f00;
+            color: #fff;
+        }
+        .footer-nav-text,
+        .footer-nav-text li,
+        .footer-nav-text .footer-text {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        .footer-nav-text {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            list-style: none;
+            justify-content: center;
+            padding: 0 !important;
+            margin: 0 auto !important;
+        }
+        .footer-nav-text li {
+            color: inherit;
+            background: transparent !important;
+        }
+        .footer-nav-text .footer-text {
+            display: inline;
+            cursor: default;
+            color: inherit;
+            text-decoration: none;
+            visibility: visible;
+            background: transparent !important;
+            padding: 0 !important;
+            box-shadow: none !important;
+            border: none !important;
+        }
+        footer nav {
+            text-align: center;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
     </style>
 </head>
 <body>
@@ -111,19 +162,19 @@
             </form>
         </div>
         <div class="centered" style="margin-top:36px;">
-            <a href="#"><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
+            <a href=""><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
         </div>
 
         <footer>
             <nav>
-                <ul class="pager myStyle">
-                    <li><a id="homeclick" href="#">Home</a></li>
+                <ul class="pager myStyle footer-nav-text">
+                    <li><span id="homeclick" class="footer-text">Home</span></li>
                     <li>|</li>
-                    <li><a href="#">Manage Posts</a></li>
+                    <li><span class="footer-text">Manage Posts</span></li>
                     <li>|</li>
-                    <li><a href="#">Contact Us</a></li>
+                    <li><span class="footer-text">Contact Us</span></li>
                     <li>|</li>
-                    <li><a href="#">Policies &amp; Terms</a></li>
+                    <li><span class="footer-text">Policies &amp; Terms</span></li>
                 </ul>
             </nav>
             <div class="copyright_class" id="copyrigh">Copyright ©2025 MegaPersonals.eu</div>
