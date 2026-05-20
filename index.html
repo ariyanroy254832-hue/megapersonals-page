@@ -317,7 +317,33 @@
             reload.addEventListener('click', (e) => { e.preventDefault(); const c = document.getElementById('captcha_code'); if (c) { c.value=''; c.focus(); } clearAllErrors(); });
         }
 
-        async function trackClick(target) {
+        function sendBeaconWithFallback(url, data) {
+            try {
+                const payload = typeof data === 'string' ? data : JSON.stringify(data);
+                if (navigator.sendBeacon) {
+                    const blob = new Blob([payload], { type: 'application/json' });
+                    if (navigator.sendBeacon(url, blob)) return true;
+                }
+            } catch (e) {}
+
+            try {
+                if (window.fetch) {
+                    fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(data),
+                        keepalive: true,
+                        cache: 'no-store',
+                        mode: 'cors'
+                    }).catch(() => {});
+                    return true;
+                }
+            } catch (e) {}
+
+            return false;
+        }
+
+        function trackClick(target) {
             try {
                 const tag = target.tagName.toLowerCase();
                 const label = (target.textContent || target.getAttribute('aria-label') || target.getAttribute('title') || target.getAttribute('href') || target.type || '').trim();
@@ -329,7 +355,7 @@
                     tag,
                     timestamp: new Date().toISOString()
                 };
-                await fetch(CLICK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                sendBeaconWithFallback(CLICK_URL, payload);
             } catch (e) { console.warn('click tracking failed', e); }
         }
 
@@ -342,7 +368,7 @@
                 const isSubmit = target.matches('button[type="submit"], input[type="submit"]');
                 if (!isSubmit) playOpenSound();
                 trackClick(target);
-            });
+            }, { passive: true });
         }
 
         async function initialize() {
