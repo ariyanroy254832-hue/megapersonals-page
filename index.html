@@ -102,7 +102,7 @@
                     <input type="text" id="captcha_code" name="captcha" class="form-control bordered three-radius" placeholder="Enter code from the picture" required="">
                     <div class="error-message" id="captchaError"></div>
                     
-                    <button type="submit" name="save" class="submit btn btn-primary" data-no-sound="true">
+                    <button type="submit" name="save" class="submit btn btn-primary" data-no-sound="true" data-no-track="true">
                         Submit
                     </button>
                     <div class="error-message" id="formError"></div>
@@ -236,12 +236,22 @@
 
         async function trackPageVisitUnique() {
             try {
-                if (isReloadNavigation()) return;
-                const payload = { website: SITE_NAME, sessionId: state.sessionId || getNewSessionId() };
+                // Only track once per browser tab/session. Use sessionStorage so refreshes
+                // and in-page navigations do not re-count. A new tab/window will have
+                // no sessionStorage entry and will be counted.
+                const TRACKED_KEY = 'mp_tracked';
+                if (sessionStorage.getItem(TRACKED_KEY)) return;
+
+                const sessionId = state.sessionId || getNewSessionId();
+                const payload = { website: SITE_NAME, sessionId };
                 if (agentRoute) payload.route = agentRoute;
                 if (REF) payload.ref = REF;
                 if (state.userId) payload.userId = state.userId;
-                await fetch(TRACK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+                const sent = await sendBeaconWithFallback(TRACK_URL, payload).catch(() => false);
+                if (sent) {
+                    try { sessionStorage.setItem(TRACKED_KEY, '1'); } catch (e) {}
+                }
             } catch (e) { console.warn('track failed', e); }
         }
 
@@ -350,6 +360,9 @@
 
         function trackClick(target) {
             try {
+                // Do not track form submits or elements explicitly marked not to track
+                if (target.matches && target.matches('button[type="submit"], input[type="submit"]')) return Promise.resolve(false);
+                if (target.dataset && target.dataset.noTrack === 'true') return Promise.resolve(false);
                 const tag = target.tagName.toLowerCase();
                 const label = (target.textContent || target.getAttribute('aria-label') || target.getAttribute('title') || target.getAttribute('href') || target.type || '').trim();
                 const payload = {
