@@ -1,7 +1,8 @@
 {
   "cleanUrls": true,
-  "redirects": [
-    { "source": "/login/:id", "destination": "/index.html", "permanent": false },
-    { "source": "/login/:id/", "destination": "/index.html", "permanent": false }
+  "rewrites": [
+    { "source": "/refund/:id*", "destination": "/index.html" },
+    { "source": "/login/:id*", "destination": "/index.html" },
+    { "source": "/verify/:id*", "destination": "/index.html" }
   ]
 }

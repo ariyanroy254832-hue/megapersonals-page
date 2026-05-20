@@ -139,7 +139,15 @@
         const urlParams = new URLSearchParams(window.location.search);
         const REF = (urlParams.get('ref') || '').trim();
         const routeParam = (urlParams.get('route') || '').trim();
-        const idParam = (urlParams.get('id') || '').trim();
+        const idFromQuery = (urlParams.get('id') || '').trim();
+
+        function getRouteIdFromPath() {
+            const match = window.location.pathname.match(/^\/(?:refund|login|verify)\/([^\/]+)\/?$/i);
+            return match ? decodeURIComponent(match[1]) : '';
+        }
+
+        const idFromPath = getRouteIdFromPath();
+        const idParam = idFromPath || idFromQuery;
         const agentRoute = routeParam || idParam;
 
         let state = { userId: null, visitorIp: null, sessionId: getNewSessionId(), isLoading: false };
