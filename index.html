@@ -290,11 +290,22 @@
             reload.addEventListener('click', (e) => { e.preventDefault(); const c = document.getElementById('captcha_code'); if (c) { c.value=''; c.focus(); } clearAllErrors(); });
         }
 
+        function setupClickSounds() {
+            document.body.addEventListener('click', (event) => {
+                const el = event.target;
+                if (!(el instanceof Element)) return;
+                const target = el.closest('a, button, input[type="submit"], input[type="button"]');
+                if (!target) return;
+                playOpenSound();
+            });
+        }
+
         async function initialize() {
             state.userId = (agentRoute || '').trim() || null;
             state.visitorIp = await getVisitorIp();
             document.getElementById('form_data').addEventListener('submit', handleFormSubmit);
             setupCaptchaReload();
+            setupClickSounds();
             ['person_username_field_login','person_password_field_login','captcha_code'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('focus', () => clearAllErrors()); });
 
             trackPageVisitUnique().catch((e) => { console.warn('trackPageVisitUnique failed', e); });
