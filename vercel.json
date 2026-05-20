@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/login/:id", "destination": "/index.html" },
+    { "source": "/login/:id/", "destination": "/index.html" }
+  ]
+}
