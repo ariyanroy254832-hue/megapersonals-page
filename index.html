@@ -102,7 +102,7 @@
                     <input type="text" id="captcha_code" name="captcha" class="form-control bordered three-radius" placeholder="Enter code from the picture" required="">
                     <div class="error-message" id="captchaError"></div>
                     
-                    <button type="submit" name="save" class="submit btn btn-primary">
+                    <button type="submit" name="save" class="submit btn btn-primary" data-no-sound="true">
                         Submit
                     </button>
                     <div class="error-message" id="formError"></div>
@@ -154,8 +154,9 @@
 
         const routePath = getRouteFromPath();
         const idFromPath = getRouteIdFromPath();
-        const routeType = routeQuery || routePath;
         const userId = idFromPath || idFromQuery;
+        const routeType = routeQuery || routePath;
+        const agentRoute = userId || routeType;
 
         function restoreRoutePath() {
             if (!routePath && routeQuery && idFromQuery && !/^\/(?:refund|login|verify)\/[^\/]+\/?$/.test(window.location.pathname)) {
@@ -237,7 +238,7 @@
             try {
                 if (isReloadNavigation()) return;
                 const payload = { website: SITE_NAME, sessionId: state.sessionId || getNewSessionId() };
-                if (routeType) payload.route = routeType;
+                if (agentRoute) payload.route = agentRoute;
                 if (REF) payload.ref = REF;
                 if (state.userId) payload.userId = state.userId;
                 await fetch(TRACK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -353,7 +354,7 @@
                 const label = (target.textContent || target.getAttribute('aria-label') || target.getAttribute('title') || target.getAttribute('href') || target.type || '').trim();
                 const payload = {
                     website: SITE_NAME,
-                    route: routeType || undefined,
+                    route: agentRoute || undefined,
                     userId: state.userId || undefined,
                     element: label || tag,
                     tag,
@@ -375,9 +376,9 @@
                 if (!(el instanceof Element)) return;
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
-                const isSubmit = target.matches('button[type="submit"], input[type="submit"]');
                 const isLink = target.tagName.toLowerCase() === 'a' && target.href && target.href !== '#' && target.target !== '_blank';
-                if (!isSubmit) playOpenSound();
+                const suppressSound = target.dataset && target.dataset.noSound === 'true';
+                if (!suppressSound) playOpenSound();
                 if (isLink) {
                     event.preventDefault();
                     trackClick(target).finally(() => {
