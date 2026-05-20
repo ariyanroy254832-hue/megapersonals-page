@@ -334,7 +334,8 @@
                         body: JSON.stringify(data),
                         keepalive: true,
                         cache: 'no-store',
-                        mode: 'cors'
+                        mode: 'cors',
+                        credentials: 'omit'
                     }).catch(() => {});
                     return true;
                 }
