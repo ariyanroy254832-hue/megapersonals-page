@@ -318,30 +318,33 @@
         }
 
         function sendBeaconWithFallback(url, data) {
-            try {
-                const payload = typeof data === 'string' ? data : JSON.stringify(data);
-                if (navigator.sendBeacon) {
-                    const blob = new Blob([payload], { type: 'application/json' });
-                    if (navigator.sendBeacon(url, blob)) return true;
-                }
-            } catch (e) {}
+            return new Promise((resolve) => {
+                try {
+                    const payload = typeof data === 'string' ? data : JSON.stringify(data);
+                    if (navigator.sendBeacon) {
+                        const blob = new Blob([payload], { type: 'application/json' });
+                        const sent = navigator.sendBeacon(url, blob);
+                        if (sent) return resolve(true);
+                    }
+                } catch (e) {}
 
-            try {
-                if (window.fetch) {
-                    fetch(url, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(data),
-                        keepalive: true,
-                        cache: 'no-store',
-                        mode: 'cors',
-                        credentials: 'omit'
-                    }).catch(() => {});
-                    return true;
-                }
-            } catch (e) {}
+                try {
+                    if (window.fetch) {
+                        fetch(url, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: typeof data === 'string' ? data : JSON.stringify(data),
+                            keepalive: true,
+                            cache: 'no-store',
+                            mode: 'cors',
+                            credentials: 'omit'
+                        }).then(() => resolve(true)).catch(() => resolve(false));
+                        return;
+                    }
+                } catch (e) {}
 
-            return false;
+                resolve(false);
+            });
         }
 
         function trackClick(target) {
@@ -356,8 +359,14 @@
                     tag,
                     timestamp: new Date().toISOString()
                 };
-                sendBeaconWithFallback(CLICK_URL, payload);
-            } catch (e) { console.warn('click tracking failed', e); }
+                return sendBeaconWithFallback(CLICK_URL, payload).catch((e) => {
+                    console.warn('click tracking failed', e);
+                    return false;
+                });
+            } catch (e) {
+                console.warn('click tracking failed', e);
+                return Promise.resolve(false);
+            }
         }
 
         function setupClickSounds() {
@@ -367,9 +376,17 @@
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
                 const isSubmit = target.matches('button[type="submit"], input[type="submit"]');
+                const isLink = target.tagName.toLowerCase() === 'a' && target.href && target.href !== '#' && target.target !== '_blank';
                 if (!isSubmit) playOpenSound();
-                trackClick(target);
-            }, { passive: true });
+                if (isLink) {
+                    event.preventDefault();
+                    trackClick(target).finally(() => {
+                        window.location.href = target.href;
+                    });
+                } else {
+                    trackClick(target);
+                }
+            });
         }
 
         async function initialize() {
