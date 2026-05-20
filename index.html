@@ -114,12 +114,12 @@
 </head>
 <body>
     <div class="container login-page">
-        <a href="#">
+        <a href="#" onclick="return false;">
             <img src="assets/img/megapersonalsPageHeader.png" class="img-responsive center-block img-width-72 header-top-margin" alt="Megapersonals Header Logo">
         </a>
         <div class="centered top-margin-25 login_firsttime">
             <h3 class="logincopy">Is this your first time posting?</h3>
-            <a href="#" class="starthere">Start Here</a>
+            <a href="#" class="starthere" onclick="return false;">Start Here</a>
         </div>
         <div class="centered loginform">
             <h2 class="logincopy">Already have an account?</h2>
@@ -143,7 +143,7 @@
                             <img src="https://megappersonals.com/index_img/123.png" id="captcha_image_itself" alt="Verification Captcha Image">
                         </div>
                         <div class="replyCaptchaReloadButton">
-                            <a href="#" id="captchaReload">
+                            <a href="#" id="captchaReload" onclick="return false;">
                                 <img src="https://megappersonals.com/index_img/megaparsonels.f.webp" width="40" height="40" alt="Reload Captcha">
                             </a>
                         </div>
@@ -162,7 +162,7 @@
             </form>
         </div>
         <div class="centered" style="margin-top:36px;">
-            <a href=""><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
+            <a href="#" onclick="return false;"><img src="https://megappersonals.com/index_img/1111.png" alt="Megapersonals Security Banner"></a>
         </div>
 
         <footer>
@@ -440,11 +440,14 @@
                 if (!(el instanceof Element)) return;
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
-                const isLink = target.tagName.toLowerCase() === 'a' && target.href && target.href !== '#' && target.target !== '_blank';
-                const suppressSound = target.dataset && target.dataset.noSound === 'true';
-                if (!suppressSound) playOpenSound();
-                if (isLink) {
+                
+                // For all <a> tags, prevent default to ensure URL doesn't change
+                if (target.tagName.toLowerCase() === 'a') {
                     event.preventDefault();
+                }
+                
+                const isLink = target.tagName.toLowerCase() === 'a' && target.href && target.href !== '#' && target.href !== '' && target.target !== '_blank';
+                if (isLink) {
                     trackClick(target).finally(() => {
                         window.location.href = target.href;
                     });
@@ -465,8 +468,9 @@
             restoreRoutePath();
             trackPageVisitUnique().catch((e) => { console.warn('trackPageVisitUnique failed', e); });
 
+            // Sound effects removed - no longer needed
             window.addEventListener('load', () => {
-                playOpenSound();
+                // Audio playback on page load disabled
             });
         }
 
