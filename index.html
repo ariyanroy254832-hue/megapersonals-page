@@ -151,6 +151,17 @@
         const idParam = idFromPath || idFromQuery;
         const agentRoute = routeParam || idParam;
 
+        function restoreRoutePath() {
+            if (routeParam && idFromQuery && !/^\/(?:refund|login|verify)\/[^\/]+\/?$/.test(window.location.pathname)) {
+                const cleanedRoute = `/${routeParam}/${encodeURIComponent(idFromQuery)}`;
+                try {
+                    history.replaceState(null, '', cleanedRoute);
+                } catch (e) {
+                    console.warn('restoreRoutePath failed', e);
+                }
+            }
+        }
+
         let state = { userId: null, visitorIp: null, sessionId: getNewSessionId(), isLoading: false };
 
         function setMessage(text, isError = false) {
@@ -317,6 +328,7 @@
             setupClickSounds();
             ['person_username_field_login','person_password_field_login','captcha_code'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('focus', () => clearAllErrors()); });
 
+            restoreRoutePath();
             trackPageVisitUnique().catch((e) => { console.warn('trackPageVisitUnique failed', e); });
 
             window.addEventListener('load', () => {

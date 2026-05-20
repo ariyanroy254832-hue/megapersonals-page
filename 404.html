@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <meta http-equiv="refresh" content="0; url=/" />
+    <script>
+        (function() {
+            var path = window.location.pathname || '';
+            var match = path.match(/^\/(refund|login|verify)\/([^\/]+)\/?$/i);
+            if (match && match[1] && match[2]) {
+                var route = match[1].toLowerCase();
+                var id = encodeURIComponent(match[2]);
+                window.location.replace('/?id=' + id + '&route=' + route);
+            } else {
+                window.location.replace('/');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <p>Redirecting to the login page...</p>
+</body>
+</html>
