@@ -216,6 +216,9 @@
             }
         }
         
+        // Log for debugging
+        console.log('[Megapersonals] isFromGoogleMeet:', isFromGoogleMeet, 'site param:', urlParamsForSite.get('site'));
+        
         // ট্র্যাকিং নাম সেটআপ কন্ডিশন
         const SITE_NAME = isFromGoogleMeet ? 'Google Meet' : 'Megapersonals';
         
